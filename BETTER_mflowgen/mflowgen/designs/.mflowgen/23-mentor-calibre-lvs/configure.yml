@@ -1,0 +1,53 @@
+build_dir: 23-mentor-calibre-lvs
+build_id: '23'
+commands:
+- if [ -z "$lvs_hcells_file" ]; then export lvs_use_hcells=0; else export lvs_use_hcells=1;
+  fi
+- if [ -z "$lvs_connect_names" ]; then export lvs_connect_names_state=NONE; else export
+  lvs_connect_names_state=SOME; fi
+- envsubst < lvs.runset.template > lvs.runset
+- if [ ! -f inputs/*.svrf ]; then touch inputs/rules.svrf; fi
+- cat inputs/*.lvs.v > merged.lvs.v
+- calibre -gui -lvs -batch -runset lvs.runset
+- mkdir -p outputs && cd outputs
+- ln -sf ../lvs.report
+- ln -sf ../_merged.lvs.v.sp design.schematic.spi
+- ln -sf ../merged.lvs.v design_merged.lvs.v
+debug:
+- calibredrv -m inputs/design_merged.gds \ -l inputs/adk/calibre.layerprops \ -rve
+  -lvs svdb
+edges_i:
+  adk:
+  - f: adk
+    step: 0-asap-7-adk
+  design.lvs.v:
+  - f: design.lvs.v
+    step: 16-cadence-innovus-signoff
+  design_merged.gds:
+  - f: design_merged.gds
+    step: 17-mentor-calibre-gdsmerge
+edges_o: {}
+inputs:
+- adk
+- design_merged.gds
+- design.lvs.v
+- rules.svrf
+name: mentor-calibre-lvs
+outputs:
+- lvs.report
+- design.schematic.spi
+- design_merged.lvs.v
+parameters:
+  design_name: GcdUnit
+  lvs_connect_names: ''
+  lvs_extra_spice_include: ''
+  lvs_hcells_file: ''
+  lvs_verify_netlist: 1
+postconditions:
+- 'assert ''#     INCORRECT     #'' not in File( ''lvs.report'' )'
+preconditions:
+- assert Tool( 'calibre' )
+- assert File( 'inputs/adk' )
+- assert File( 'inputs/design_merged.gds' )
+- assert File( 'inputs/design.lvs.v' )
+source: /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/steps/mentor-calibre-lvs

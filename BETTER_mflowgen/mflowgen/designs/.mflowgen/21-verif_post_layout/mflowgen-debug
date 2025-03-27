@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-debug
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+export design_name=GcdUnit
+export nthreads=8
+export order=designer-interface.tcl,setup-session.tcl,read-design.tcl,verify.tcl
+
+# Debug
+
+fm_shell -gui -session fm_session.fss
+

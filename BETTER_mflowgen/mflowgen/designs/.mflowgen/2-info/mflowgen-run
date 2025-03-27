@@ -1,0 +1,33 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-run
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+rm -f .time_end
+date +%Y-%m%d-%H%M-%S > .time_start
+MFLOWGEN_STEP_HOME=$PWD
+export design_name=GcdUnit
+export clock_period=2000.0
+export construct_path=/afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/designs/matrix_mult_2x2x1/construct-commercial-full.py
+export adk=asap7
+export adk_view=view-standard
+
+# Commands
+
+echo "Design name      -- $design_name"
+echo "Clock period     -- $clock_period"
+echo "ADK              -- $adk"
+echo "ADK view         -- $adk_view"
+echo
+echo "Constructed from -- $construct_path"
+echo
+
+# Post
+
+cd $MFLOWGEN_STEP_HOME
+date +%Y-%m%d-%H%M-%S > .time_end
+

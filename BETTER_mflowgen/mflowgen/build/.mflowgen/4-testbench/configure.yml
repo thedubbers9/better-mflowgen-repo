@@ -1,0 +1,26 @@
+build_dir: 4-testbench
+build_id: '4'
+commands:
+- cp GcdUnitTb.sv outputs/testbench.sv
+- python3 generate_test_vectors.py
+- cp test_vectors.txt outputs/test_vectors.txt
+edges_i: {}
+edges_o:
+  design.args:
+  - f: design.args
+    step: 20-synopsys-vcs-sim
+  test_vectors.txt:
+  - f: test_vectors.txt
+    step: 20-synopsys-vcs-sim
+  testbench.sv:
+  - f: testbench.sv
+    step: 20-synopsys-vcs-sim
+name: testbench
+outputs:
+- testbench.sv
+- test_vectors.txt
+- design.args
+parameters:
+  dut_name: GcdUnit_inst
+  testbench_name: GcdUnitTb
+source: /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/designs/mult_16b_flopped/testbench

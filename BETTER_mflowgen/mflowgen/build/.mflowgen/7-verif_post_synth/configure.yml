@@ -1,0 +1,40 @@
+build_dir: 7-verif_post_synth
+build_id: '7'
+commands:
+- source run.sh
+debug:
+- fm_shell -gui -session fm_session.fss
+edges_i:
+  adk:
+  - f: adk
+    step: 3-skywater-130nm
+  design.impl.v:
+  - f: design.v
+    step: 5-cadence-genus-synthesis
+  design.ref.v:
+  - f: 2_mult_16b_flopped.sv
+    step: 2-rtl
+edges_o: {}
+inputs:
+- adk
+- design.ref.v
+- design.ref.upf
+- design.impl.v
+- design.impl.upf
+- design.svf
+name: verif_post_synth
+parameters:
+  design_name: mult_16b_flopped
+  nthreads: 8
+  order:
+  - designer-interface.tcl
+  - setup-session.tcl
+  - read-design.tcl
+  - verify.tcl
+postconditions:
+- |-
+  import glob
+  with open(glob.glob('reports/*.failing_points.rpt')[0], 'r') as f:
+    text = f.read()
+  assert "No failing compare points." in text
+source: /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/steps/synopsys-formality-verification

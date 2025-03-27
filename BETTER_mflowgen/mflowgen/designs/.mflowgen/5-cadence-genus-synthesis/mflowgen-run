@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-run
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+rm -f .time_end
+date +%Y-%m%d-%H%M-%S > .time_start
+MFLOWGEN_STEP_HOME=$PWD
+export design_name=GcdUnit
+export clock_period=2000.0
+export gate_clock=True
+export uniquify_with_design_name=True
+export flatten_effort=0
+export read_hdl_defines=
+export order=designer-interface.tcl,setup-session.tcl,read-design.tcl,constraints.tcl,compile.tcl,generate-results.tcl
+
+# Commands
+
+genus -no_gui -f START.tcl -log logs/genus.log
+mkdir -p outputs && cd outputs
+ln -sf ../results_syn/syn_out.v design.v
+ln -sf ../results_syn/syn_out._default_constraint_mode_.sdc design.sdc
+ln -sf ../results_syn/syn_out.sdf design.sdf
+ln -sf ../results_syn/syn_out.spef design.spef
+ln -sf ../name_map.rpt design.namemap
+
+# Post
+
+cd $MFLOWGEN_STEP_HOME
+date +%Y-%m%d-%H%M-%S > .time_end
+

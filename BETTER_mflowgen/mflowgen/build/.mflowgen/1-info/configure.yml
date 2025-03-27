@@ -1,0 +1,20 @@
+build_dir: 1-info
+build_id: '1'
+commands:
+- echo "Design name      -- $design_name"
+- echo "Clock period     -- $clock_period"
+- echo "ADK              -- $adk"
+- echo "ADK view         -- $adk_view"
+- echo
+- echo "Constructed from -- $construct_path"
+- echo
+edges_i: {}
+edges_o: {}
+name: info
+parameters:
+  adk: skywater-130nm
+  adk_view: view-standard
+  clock_period: 10.0
+  construct_path: /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/designs/mult_16b_flopped/construct-commercial-full.py
+  design_name: mult_16b_flopped
+source: /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/steps/info

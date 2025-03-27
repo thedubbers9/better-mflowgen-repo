@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-debug
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+export design_name=GcdUnit
+export lvs_hcells_file=
+export lvs_connect_names=
+export lvs_verify_netlist=1
+export lvs_extra_spice_include=
+
+# Debug
+
+calibredrv -m inputs/design_merged.gds \ -l inputs/adk/calibre.layerprops \ -rve -lvs svdb
+

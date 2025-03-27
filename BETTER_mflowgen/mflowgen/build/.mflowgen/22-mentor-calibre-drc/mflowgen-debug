@@ -1,0 +1,17 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-debug
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+export design_name=mult_16b_flopped
+export drc_rule_deck=calibre-drc-block.rule
+export drc_env_setup=undefined
+
+# Debug
+
+calibredrv -m inputs/design_merged.gds \ -l inputs/adk/calibre.layerprops \ -rve -drc drc.results
+

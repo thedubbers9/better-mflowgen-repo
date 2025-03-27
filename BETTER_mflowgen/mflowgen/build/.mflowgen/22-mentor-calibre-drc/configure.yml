@@ -1,0 +1,39 @@
+build_dir: 22-mentor-calibre-drc
+build_id: '22'
+commands:
+- if [ -f "inputs/adk/undefined" ]; then source inputs/adk/undefined; fi
+- envsubst < drc.runset.template > drc.runset
+- calibre -gui -drc -batch -runset drc.runset
+- mkdir -p outputs && cd outputs
+- ln -sf ../drc.results
+- ln -sf ../drc.summary
+debug:
+- calibredrv -m inputs/design_merged.gds \ -l inputs/adk/calibre.layerprops \ -rve
+  -drc drc.results
+edges_i:
+  adk:
+  - f: adk
+    step: 3-skywater-130nm
+  design_merged.gds:
+  - f: design_merged.gds
+    step: 17-mentor-calibre-gdsmerge
+edges_o:
+  drc.results:
+  - f: drc.results
+    step: 25-cadence-innovus-debug-calibre
+inputs:
+- design_merged.gds
+- adk
+name: mentor-calibre-drc
+outputs:
+- drc.results
+- drc.summary
+parameters:
+  design_name: mult_16b_flopped
+  drc_env_setup: undefined
+  drc_rule_deck: calibre-drc-block.rule
+preconditions:
+- assert Tool( 'calibre' )
+- assert File( 'inputs/adk' )
+- assert File( 'inputs/design_merged.gds' )
+source: /afs/ece.cmu.edu/usr/edubbers/private/CODESIGN_PROJ/BETTER_mflowgen/mflowgen/steps/mentor-calibre-drc

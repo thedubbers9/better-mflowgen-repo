@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+set -euo pipefail
+#=========================================================================
+# mflowgen-debug
+#=========================================================================
+# Generator : /afs/ece.cmu.edu/usr/edubbers/private/research_work/my_mflowgen/mflowgen/mflowgen/core/build_orchestrator.py
+
+# Pre
+
+export design_name=GcdUnit
+
+# Debug
+
+calibredrv -m design_merged.gds \ -l inputs/adk/calibre.layerprops
+
