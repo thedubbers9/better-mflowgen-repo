@@ -1,30 +1,39 @@
 `default_nettype none
 
 module AND_16b_flopped (
-    input wire [15:0] a,
-    input wire clk,          // Clock input for the flops
-    output reg result
+    a, clk, result
 );
 
-    // Wires for intermediate results from the ADD_16b module
-    wire rst_unflopped;
-    reg [15:0] a_flopped;
+    parameter BITWIDTH = 16;
+    parameter NUM_UNITS = 16;
 
+    input wire [BITWIDTH*NUM_UNITS - 1:0] a;
+    input wire clk;          // Clock input for the flops
+    output reg [NUM_UNITS - 1:0] result;
 
-    // Flop the inputs
-    always_ff @( posedge clk ) begin
-        a_flopped <= a;      
+    // flop the inputs
+    logic [BITWIDTH*NUM_UNITS - 1:0] a_flopped;
+    always @(posedge clk) begin
+        a_flopped <= a;
     end
 
-    // Instantiate the ADD_16b module
-    AND_16b iDUT (
-        .in(a_flopped),
-        .result(rst_unflopped)
-    );
+
+    logic [NUM_UNITS - 1:0] result_unflopped;
+
+    genvar i;
+
+    generate
+        for (i = 0; i < NUM_UNITS; i = i + 1) begin : and_gates
+            AND_16b iDUT (
+                .in(a_flopped[i*BITWIDTH +: BITWIDTH]),
+                .result(result_unflopped[i])
+            );
+        end
+    endgenerate
 
     // Flop the outputs
     always @(posedge clk) begin
-        result <= rst_unflopped;
+        result <= result_unflopped;
     end
 
 endmodule
