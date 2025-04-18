@@ -1,6 +1,6 @@
 `default_nettype none
 
-module BitOR_16b_flopped (
+module BitXOR_16b_flopped (
     a, b, clk, result
 );
 
@@ -58,7 +58,7 @@ module BitOR_16b_flopped (
 
     logic [BITWIDTH-1:0] result_unflopped [NUM_PIPELINE_STAGES:0];
 
-    BitOR_16b iDUT (
+    BitXOR_16b iDUT (
         .a(multiplied_xor_result_flopped_a),
         .b(multiplied_xor_result_flopped_b),
         .result(result_unflopped[0])

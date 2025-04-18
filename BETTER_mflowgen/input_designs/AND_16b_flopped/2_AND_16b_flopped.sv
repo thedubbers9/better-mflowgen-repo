@@ -4,37 +4,72 @@ module AND_16b_flopped (
     a, clk, result
 );
 
+    parameter NUM_PIPELINE_STAGES = 1;
     parameter BITWIDTH = 16;
-    parameter NUM_UNITS = 16;
 
-    input wire [BITWIDTH*NUM_UNITS - 1:0] a;
+    input wire [BITWIDTH - 1:0] a;
     input wire clk;          // Clock input for the flops
-    output reg [NUM_UNITS - 1:0] result;
+    output reg result;
 
     // flop the inputs
-    logic [BITWIDTH*NUM_UNITS - 1:0] a_flopped;
-    always @(posedge clk) begin
-        a_flopped <= a;
-    end
-
-
-    logic [NUM_UNITS - 1:0] result_unflopped;
-
+    logic [BITWIDTH - 1:0] a_flopped [NUM_PIPELINE_STAGES - 1:0];
+    
     genvar i;
-
     generate
-        for (i = 0; i < NUM_UNITS; i = i + 1) begin : and_gates
-            AND_16b iDUT (
-                .in(a_flopped[i*BITWIDTH +: BITWIDTH]),
-                .result(result_unflopped[i])
-            );
+        for (i = 0; i < NUM_PIPELINE_STAGES; i++) begin : in_flop_gen
+            always @(posedge clk) begin
+                if (i == 0) begin
+                    a_flopped[i] <= a;
+                end else begin
+                    a_flopped[i] <= a_flopped[i - 1];
+                end
+            end
         end
     endgenerate
 
-    // Flop the outputs
+    logic [2*BITWIDTH-1:0] multiplied_result;
+
+    assign multiplied_result = a_flopped[NUM_PIPELINE_STAGES - 1] * a_flopped[NUM_PIPELINE_STAGES - 1];
+
+    logic [2*BITWIDTH-1:0] multiplied_result_flopped;
+
+    // flop the multiplied result
     always @(posedge clk) begin
-        result <= result_unflopped;
+        multiplied_result_flopped <= multiplied_result;
     end
+
+    logic [BITWIDTH-1:0] multiplied_xor_result;
+
+    assign multiplied_xor_result = multiplied_result_flopped[BITWIDTH - 1:0] ^ multiplied_result_flopped[2*BITWIDTH - 1:BITWIDTH];
+
+    logic [BITWIDTH-1:0] multiplied_xor_result_flopped;
+
+    // flop the multiplied xor result
+    always @(posedge clk) begin
+        multiplied_xor_result_flopped <= multiplied_xor_result;
+    end
+
+    logic result_unflopped [NUM_PIPELINE_STAGES:0];
+
+    AND_16b iDUT (
+        .in(multiplied_xor_result_flopped),
+        .result(result_unflopped[0])
+    );
+
+    genvar j;
+
+    generate
+        for (j = 1; j <= NUM_PIPELINE_STAGES; j++) begin : out_flop_gen
+            always @(posedge clk) begin
+                result_unflopped[j] <= result_unflopped[j - 1];
+            end
+        end
+
+    endgenerate
+
+    assign result = result_unflopped[NUM_PIPELINE_STAGES];
+
+
 
 endmodule
 

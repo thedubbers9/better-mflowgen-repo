@@ -8,7 +8,13 @@ module NOT_16b (
     output wire [15:0] result
 );
 
-	assign result = ~in;
+    wire [15:0] input_val, result_val;
+
+    assign input_val = in;
+
+	assign result_val = ~input_val;
+
+    assign result = result_val;
 
 endmodule
 

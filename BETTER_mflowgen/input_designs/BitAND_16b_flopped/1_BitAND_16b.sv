@@ -6,10 +6,10 @@
 module BitAND_16b (
     input wire [15:0] a,
     input wire [15:0] b,
-    output wire [15:0] rst
+    output wire [15:0] result
 );
 
-	assign rst = a & b;
+	assign result = a & b;
 
 
 endmodule

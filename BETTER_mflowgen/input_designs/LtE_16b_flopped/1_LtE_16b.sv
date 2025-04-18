@@ -6,10 +6,10 @@
 module LtE_16b (
     input wire [15:0] a,
     input wire [15:0] b,
-    output wire rst
+    output wire result
 );
 
-	assign rst = (a <= b);
+	assign result = (a <= b);
 
 
 endmodule

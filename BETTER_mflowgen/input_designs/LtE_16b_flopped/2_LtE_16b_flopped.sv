@@ -1,6 +1,6 @@
 `default_nettype none
 
-module BitOR_16b_flopped (
+module LtE_16b_flopped (
     a, b, clk, result
 );
 
@@ -9,7 +9,7 @@ module BitOR_16b_flopped (
 
     input wire [BITWIDTH - 1:0] a,b;
     input wire clk;          // Clock input for the flops
-    output reg [BITWIDTH - 1:0] result;
+    output reg result;
 
     // flop the inputs
     logic [BITWIDTH - 1:0] a_flopped [NUM_PIPELINE_STAGES - 1:0];
@@ -56,9 +56,10 @@ module BitOR_16b_flopped (
         multiplied_xor_result_flopped_b <= multiplied_xor_result_b;
     end
 
-    logic [BITWIDTH-1:0] result_unflopped [NUM_PIPELINE_STAGES:0];
+    logic result_unflopped [NUM_PIPELINE_STAGES:0];
 
-    BitOR_16b iDUT (
+    // Instantiate the module
+    LtE_16b iDUT (
         .a(multiplied_xor_result_flopped_a),
         .b(multiplied_xor_result_flopped_b),
         .result(result_unflopped[0])

@@ -172,8 +172,13 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("echo 'read_db checkpoints/design.checkpoint/save.enc.dat' > get_stats.tcl")
     execute_command("echo 'report_power -hierarchy 1 > power.rpt' >> get_stats.tcl")
     execute_command("echo 'report_area > area.rpt' >> get_stats.tcl")
-    execute_command("echo 'report_timing -nworst 100 > timing.rpt' >> get_stats.tcl")
+    execute_command("echo 'report_timing -nworst 10 > timing.rpt' >> get_stats.tcl")
     execute_command("echo 'write_netlist post_route_netlist.sv ' >> get_stats.tcl")
+
+    execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
+
+
+    
 
     execute_command("innovus -stylus -batch -file get_stats.tcl")
     change_directory("../../..")
@@ -182,6 +187,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("cp ./mflowgen/build/13-cadence-innovus-route/area.rpt ./" + results_folder_name + "/")
     execute_command("cp ./mflowgen/build/13-cadence-innovus-route/timing.rpt ./" + results_folder_name + "/")
     execute_command("cp ./mflowgen/build/13-cadence-innovus-route/post_route_netlist.sv ./" + results_folder_name + "/")
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/DUT_timing.rpt ./" + results_folder_name + "/")
 
 
     ## copy the input files to the result directory
@@ -197,7 +203,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
 def main():
     parser = argparse.ArgumentParser(description="Run the flow with specified input file folder, project name, and PDK name.")
     parser.add_argument('-input_file_folder', help='Relative path to the input file folder')
-    parser.add_argument('-project_name', help='Name of the project')
+    parser.add_argument('-project_name', help='Name of the project. This should be the name of the top-level design file without the prefix and file extension')
     parser.add_argument('-pdk_name', choices=['asap7', 'skywater-130nm'], help='PDK name (asap7 or skywater-130nm)')
     parser.add_argument('-batch_run', help='Directory containing multiple designs to be synthesized')
 
