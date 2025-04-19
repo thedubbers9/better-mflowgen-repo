@@ -12,10 +12,6 @@ set_attribute auto_ungroup $auto_ungroup_val
 
 syn_gen
 
-report_cell [get_cells -hierarchical *NOT_16b*]
-
-set_dont_touch_module [get_cells -hierarchical *iDUT]
-
 set_attr syn_map_effort high
 syn_map
 syn_opt

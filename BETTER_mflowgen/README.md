@@ -25,7 +25,7 @@ To run BETTER_mflowgen on a design:
 3. Go back to the top level of the repository. 
 4. conda activate mflowgen_env
 5. python3 automated_run.py -h ## to see the options
-6. Run as desired. 
+6. Run as desired. The results will be placed in the flow_results folder. 
 
 
 Debugging help: 
