@@ -15,7 +15,7 @@ import os
 from datetime import datetime
 import argparse
 
-USR_HOME_DIR = '/afs/ece.cmu.edu/usr/edubbers'
+USR_HOME_DIR = '~'
 
 def generate_timestamp_folder_name():
     # Get the current date and time, then format it
@@ -73,7 +73,7 @@ def execute_command(command):
     try:
         # Execute the command and capture the output
         result = subprocess.run(command, shell=True, check=True, text=True)
-        
+
     except subprocess.CalledProcessError as e:
         # Print or handle the error if the command fails
         print("Error:", e.stderr)
@@ -84,7 +84,7 @@ def execute_command(command):
 
 
 
-def run_flow(input_file_folder, project_name, pdk_name):    
+def run_flow(input_file_folder, project_name, pdk_name):
     ## copy the verilog files into the project
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
         execute_command("rm -rf ./mflowgen/designs/" + project_name + "/")
@@ -115,7 +115,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     ## update the clock period in the construct-commercial-full.py
     clock_period = "2000.0" # this is in ps
 
-    if pdk_name == "skywater-130nm":
+    if pdk_name == "skywater-130nm" or pdk_name == "freepdk-45nm":
         clock_period = "10.0" # this is in ns
 
     execute_command("sed -i 's/PARAM_CLOCK_PERIOD/" + clock_period + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
@@ -178,7 +178,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
 
 
-    
+
 
     execute_command("innovus -stylus -batch -file get_stats.tcl")
     change_directory("../../..")
@@ -204,7 +204,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run the flow with specified input file folder, project name, and PDK name.")
     parser.add_argument('-input_file_folder', help='Relative path to the input file folder')
     parser.add_argument('-project_name', help='Name of the project. This should be the name of the top-level design file without the prefix and file extension')
-    parser.add_argument('-pdk_name', choices=['asap7', 'skywater-130nm'], help='PDK name (asap7 or skywater-130nm)')
+    parser.add_argument('-pdk_name', choices=['asap7', 'skywater-130nm','freepdk-45nm'], help='PDK name (asap7 or skywater-130nm)')
     parser.add_argument('-batch_run', help='Directory containing multiple designs to be synthesized')
 
     args = parser.parse_args()
