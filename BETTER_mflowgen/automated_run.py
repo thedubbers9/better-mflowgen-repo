@@ -139,16 +139,9 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     change_directory("./mflowgen/build/")
 
-    source_command = "source " + USR_HOME_DIR + "/.bashrc;"
+    execute_command("mflowgen run --design ../designs/" + project_name)
 
-    activate_env_command = "conda activate mflowgen_env;"
-
-    # execute_command("source /afs/ece.cmu.edu/usr/edubbers/.bashrc")
-    # execute_command("conda activate mflowgen_env")
-
-    execute_command(source_command + activate_env_command + "mflowgen run --design ../designs/" + project_name)
-
-    execute_command(source_command + activate_env_command + "make 13 | tee debug.out")
+    execute_command("make 13 | tee debug.out")
 
     if not os.path.exists("./13-cadence-innovus-route/"):
         print("Error, flow incomplete. Exiting...")
@@ -176,9 +169,6 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("echo 'write_netlist post_route_netlist.sv ' >> get_stats.tcl")
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
-
-
-    
 
     execute_command("innovus -stylus -batch -file get_stats.tcl")
     change_directory("../../..")
