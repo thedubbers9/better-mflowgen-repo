@@ -1,4 +1,0 @@
-    Hinst Name       Module Name               Inst Count           Total Area
----------------------------------------------------------------------------
-mult_16b_flopped                                      397              793.212
- iDUT                mult_16b_flopped_mult_16b        267              513.912
