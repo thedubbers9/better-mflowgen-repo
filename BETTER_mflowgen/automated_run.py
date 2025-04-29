@@ -15,7 +15,7 @@ import os
 from datetime import datetime
 import argparse
 
-USR_HOME_DIR = '/afs/ece.cmu.edu/usr/edubbers'
+USR_HOME_DIR = '~'
 
 def generate_timestamp_folder_name():
     # Get the current date and time, then format it
@@ -73,7 +73,7 @@ def execute_command(command):
     try:
         # Execute the command and capture the output
         result = subprocess.run(command, shell=True, check=True, text=True)
-        
+
     except subprocess.CalledProcessError as e:
         # Print or handle the error if the command fails
         print("Error:", e.stderr)
@@ -84,7 +84,7 @@ def execute_command(command):
 
 
 
-def run_flow(input_file_folder, project_name, pdk_name):    
+def run_flow(input_file_folder, project_name, pdk_name):
     ## copy the verilog files into the project
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
         execute_command("rm -rf ./mflowgen/designs/" + project_name + "/")
@@ -115,7 +115,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     ## update the clock period in the construct-commercial-full.py
     clock_period = "2000.0" # this is in ps
 
-    if pdk_name == "skywater-130nm":
+    if pdk_name == "skywater-130nm" or pdk_name == "freepdk-45nm":
         clock_period = "10.0" # this is in ns
 
     execute_command("sed -i 's/PARAM_CLOCK_PERIOD/" + clock_period + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
@@ -169,60 +169,4 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("echo 'write_netlist post_route_netlist.sv ' >> get_stats.tcl")
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
-
-    execute_command("innovus -stylus -batch -file get_stats.tcl")
-    change_directory("../../..")
-
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/power.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/area.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/timing.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/post_route_netlist.sv ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/DUT_timing.rpt ./" + results_folder_name + "/")
-
-
-    ## copy the input files to the result directory
-    execute_command("cp -r ./" + input_file_folder + " ./" + results_folder_name + "/input-files/")
-
-    ## copy the entire build directory to the results directory [NOT RECOMMENDED, uses too much space]
-    #execute_command("cp -r ./mflowgen/build/ ./" + results_folder_name + "/full-build/")
-
-    print("FLOW COMPLETE! See results folder created (" + results_folder_name + ") !")
-
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Run the flow with specified input file folder, project name, and PDK name.")
-    parser.add_argument('-input_file_folder', help='Relative path to the input file folder')
-    parser.add_argument('-project_name', help='Name of the project. This should be the name of the top-level design file without the prefix and file extension')
-    parser.add_argument('-pdk_name', choices=['asap7', 'skywater-130nm'], help='PDK name (asap7 or skywater-130nm)')
-    parser.add_argument('-batch_run', help='Directory containing multiple designs to be synthesized')
-
-    args = parser.parse_args()
-
-    if args.batch_run:
-
-        # make sure the pdk is defined
-        if not args.pdk_name:
-            parser.error("The following arguments are required: -pdk_name")
-
-        batch_directory = args.batch_run
-        for design_folder in os.listdir(batch_directory):
-            design_path = os.path.join(batch_directory, design_folder)
-            if os.path.isdir(design_path):
-                print(f"Running flow for design: {design_folder}")
-                run_flow(design_path, design_folder, args.pdk_name)
-    else:
-        input_file_folder = args.input_file_folder
-        project_name = args.project_name
-        pdk_name = args.pdk_name
-
-        if not input_file_folder or not project_name or not pdk_name:
-            parser.error("The following arguments are required: -input_file_folder, -project_name, -pdk_name")
-
-        run_flow(input_file_folder, project_name, pdk_name)
-
-
-if __name__ == "__main__":
-    main()
-
 
