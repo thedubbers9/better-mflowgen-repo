@@ -139,16 +139,9 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     change_directory("./mflowgen/build/")
 
-    source_command = "source " + USR_HOME_DIR + "/.bashrc;"
+    execute_command("mflowgen run --design ../designs/" + project_name)
 
-    activate_env_command = "conda activate mflowgen_env;"
-
-    # execute_command("source /afs/ece.cmu.edu/usr/edubbers/.bashrc")
-    # execute_command("conda activate mflowgen_env")
-
-    execute_command(source_command + activate_env_command + "mflowgen run --design ../designs/" + project_name)
-
-    execute_command(source_command + activate_env_command + "make 13 | tee debug.out")
+    execute_command("make 13 | tee debug.out")
 
     if not os.path.exists("./13-cadence-innovus-route/"):
         print("Error, flow incomplete. Exiting...")
@@ -176,63 +169,4 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("echo 'write_netlist post_route_netlist.sv ' >> get_stats.tcl")
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
-
-
-
-
-    execute_command("innovus -stylus -batch -file get_stats.tcl")
-    change_directory("../../..")
-
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/power.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/area.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/timing.rpt ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/post_route_netlist.sv ./" + results_folder_name + "/")
-    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/DUT_timing.rpt ./" + results_folder_name + "/")
-
-
-    ## copy the input files to the result directory
-    execute_command("cp -r ./" + input_file_folder + " ./" + results_folder_name + "/input-files/")
-
-    ## copy the entire build directory to the results directory [NOT RECOMMENDED, uses too much space]
-    #execute_command("cp -r ./mflowgen/build/ ./" + results_folder_name + "/full-build/")
-
-    print("FLOW COMPLETE! See results folder created (" + results_folder_name + ") !")
-
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Run the flow with specified input file folder, project name, and PDK name.")
-    parser.add_argument('-input_file_folder', help='Relative path to the input file folder')
-    parser.add_argument('-project_name', help='Name of the project. This should be the name of the top-level design file without the prefix and file extension')
-    parser.add_argument('-pdk_name', choices=['asap7', 'skywater-130nm','freepdk-45nm'], help='PDK name (asap7 or skywater-130nm)')
-    parser.add_argument('-batch_run', help='Directory containing multiple designs to be synthesized')
-
-    args = parser.parse_args()
-
-    if args.batch_run:
-
-        # make sure the pdk is defined
-        if not args.pdk_name:
-            parser.error("The following arguments are required: -pdk_name")
-
-        batch_directory = args.batch_run
-        for design_folder in os.listdir(batch_directory):
-            design_path = os.path.join(batch_directory, design_folder)
-            if os.path.isdir(design_path):
-                print(f"Running flow for design: {design_folder}")
-                run_flow(design_path, design_folder, args.pdk_name)
-    else:
-        input_file_folder = args.input_file_folder
-        project_name = args.project_name
-        pdk_name = args.pdk_name
-
-        if not input_file_folder or not project_name or not pdk_name:
-            parser.error("The following arguments are required: -input_file_folder, -project_name, -pdk_name")
-
-        run_flow(input_file_folder, project_name, pdk_name)
-
-
-if __name__ == "__main__":
-    main()
-
 
