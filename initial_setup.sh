@@ -1,6 +1,8 @@
 #!/bin/bash
 # pass in "stanford" or "cmu" as the first argument to this script
 
+git submodule update --init --recursive
+
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p "$(pwd)/miniconda3"
 source mflowgen_env_setup_script_$1.sh
