@@ -14,5 +14,7 @@ TOP=${PWD}
 pip install -e .
 
 wget https://cmu.box.com/shared/static/quxh46s78snaslb6yul8wcgmztdvigxn -O asap7.tar.gz
+
+mkdir -p $TOP/adks/asap7/
 tar -xvf asap7.tar.gz -C $TOP/adks/asap7/
 

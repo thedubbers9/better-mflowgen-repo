@@ -1,5 +1,0 @@
--r dev.txt
-
-autoflake
-flake8
-pyupgrade
