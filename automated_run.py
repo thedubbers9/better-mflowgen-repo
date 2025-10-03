@@ -170,3 +170,29 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
 
+
+def main(argv=None):
+        """Parse command line arguments and invoke run_flow.
+
+        Options:
+            --input-folder / -i : path to folder containing input RTL files
+            --project-name / -p : name of the project to create under mflowgen/designs
+            --pdk / -d : pdk name to use (e.g. asap7, skywater-130nm, freepdk-45nm)
+        """
+        parser = argparse.ArgumentParser(description="Run mflowgen flow for a given input folder and PDK")
+        parser.add_argument('-i', '--input-folder', required=True,
+                                                help='Folder containing input RTL/files (relative to repo root)')
+        parser.add_argument('-p', '--project-name', required=True,
+                                                help='Project name to create under mflowgen/designs')
+        parser.add_argument('-d', '--pdk', dest='pdk_name', required=True,
+                                                help='PDK name to use (e.g. asap7, skywater-130nm, freepdk-45nm)')
+
+        args = parser.parse_args(argv)
+
+        # Call the flow with the provided arguments
+        run_flow(args.input_folder, args.project_name, args.pdk_name)
+
+
+if __name__ == '__main__':
+        main()
+
