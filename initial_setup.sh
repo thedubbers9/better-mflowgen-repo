@@ -33,5 +33,15 @@ sed -i "s/'synopsys-dc-synthesis'/'cadence-genus-synthesis'/g" "$CONSTRUCT_COMME
 # 2) Rename identifier dc -> gsyn (avoid touching hyphenated strings like synopsys-dc-synthesis)
 sed -i -E "s/(^|[^[:alnum:]_\\-])dc([^[:alnum:]_\\-]|$)/\\1gsyn\\2/g" "$CONSTRUCT_COMMERCIAL_FILE"
 
+## replace     'design_name'    : 'GcdUnit', with 'design_name'    : 'PARAM_DESIGN_NAME_1',
+sed -i "s/'design_name'    : 'GcdUnit'/'design_name'    : 'PARAM_DESIGN_NAME_1'/g" "$CONSTRUCT_COMMERCIAL_FILE"
+
+## replace 'clock_period'   : 2.0, with 'clock_period'   : PARAM_CLOCK_PERIOD,
+sed -i "s/'clock_period'   : 2.0/'clock_period'   : PARAM_CLOCK_PERIOD/g" "$CONSTRUCT_COMMERCIAL_FILE"
+
+
+## replace  g.connect( rtl.o('design.v'), verif_post_synth.i('design.ref.v') ) with  g.connect( rtl.o('PARAM_DESIGN_NAME_2.sv'), verif_post_synth.i('design.ref.v') )
+sed -i "s/g.connect( rtl.o('design.v'), verif_post_synth.i('design.ref.v') )/g.connect( rtl.o('PARAM_DESIGN_NAME_2.sv'), verif_post_synth.i('design.ref.v') )/g" "$CONSTRUCT_COMMERCIAL_FILE"
+
 cd ..
 
