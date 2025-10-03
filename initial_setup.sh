@@ -22,3 +22,17 @@ wget https://cmu.box.com/shared/static/quxh46s78snaslb6yul8wcgmztdvigxn -O asap7
 mkdir -p $TOP/adks/asap7/
 tar -xvf asap7.tar.gz -C $TOP/adks/asap7/
 
+mkdir -p $TOP/build/
+
+## edit template construct-commercial-full.py:
+CONSTRUCT_COMMERCIAL_FILE="$TOP/designs/GcdUnit/construct-commercial-full.py"
+
+# Replace the Step(...) line
+sed -i "s|.*Step(.*cadence-genus-synthesis.*)|gsyn = Step( 'cadence-genus-synthesis',          default=True )|" "$CONSTRUCT_COMMERCIAL_FILE"
+
+# Replace all "dc" with "gsyn"
+sed -i "s/dc/gsyn/g" "$CONSTRUCT_COMMERCIAL_FILE"
+
+
+cd ..
+

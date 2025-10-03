@@ -89,7 +89,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
         execute_command("rm -rf ./mflowgen/designs/" + project_name + "/")
 
-    execute_command("cp -r ./mflowgen/designs/template_hier ./mflowgen/designs/" + project_name)
+    execute_command("cp -r ./mflowgen/designs/GcdUnit ./mflowgen/designs/" + project_name)
 
     execute_command("rm -rf ./mflowgen/designs/" + project_name + "/rtl/outputs/*" )
 
