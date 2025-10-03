@@ -27,12 +27,11 @@ mkdir -p $TOP/build/
 ## edit template construct-commercial-full.py:
 CONSTRUCT_COMMERCIAL_FILE="$TOP/designs/GcdUnit/construct-commercial-full.py"
 
-# Replace the Step(...) line
-sed -i "s|.*Step(.*cadence-genus-synthesis.*)|gsyn = Step( 'cadence-genus-synthesis',          default=True )|" "$CONSTRUCT_COMMERCIAL_FILE"
+# 1) Change the synthesis step name
+sed -i "s/'synopsys-dc-synthesis'/'cadence-genus-synthesis'/g" "$CONSTRUCT_COMMERCIAL_FILE"
 
-# Replace all "dc" with "gsyn"
-sed -i "s/dc/gsyn/g" "$CONSTRUCT_COMMERCIAL_FILE"
-
+# 2) Rename identifier dc -> gsyn (avoid touching hyphenated strings like synopsys-dc-synthesis)
+sed -i -E "s/(^|[^[:alnum:]_\\-])dc([^[:alnum:]_\\-]|$)/\\1gsyn\\2/g" "$CONSTRUCT_COMMERCIAL_FILE"
 
 cd ..
 
