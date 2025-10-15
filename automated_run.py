@@ -79,10 +79,52 @@ def execute_command(command):
         print("Error:", e.stderr)
         return None
 
+def fix_antenna_cell_issue():
+    """Comments out ADK_ANTENNA_CELL reference in setup.tcl if not already fixed."""
+    setup_tcl_path = "./mflowgen/steps/cadence-innovus-flowsetup/setup.tcl"
+    
+    if not os.path.exists(setup_tcl_path):
+        print(f"Warning: {setup_tcl_path} not found, skipping antenna cell fix")
+        return
+    
+    # Read the file
+    with open(setup_tcl_path, 'r') as f:
+        lines = f.readlines()
+    
+    # Check if already fixed
+    modified = False
+    for i, line in enumerate(lines):
+        # Look for the problematic line and comment it out if not already commented
+        if 'ADK_ANTENNA_CELL' in line and not line.strip().startswith('#'):
+            lines[i] = '# ' + line  # Comment out the line
+            modified = True
+            print(f"Commented out line {i+1} in setup.tcl: {line.strip()}")
+    
+    # Write back if modified
+    if modified:
+        with open(setup_tcl_path, 'w') as f:
+            f.writelines(lines)
+        print("Fixed ADK_ANTENNA_CELL issue in setup.tcl")
+    else:
+        print("ADK_ANTENNA_CELL already fixed or not present in setup.tcl")
 
 
 
-
+def fix_gds_layer_map(pdk_name):
+    """Ensures the GDS layer map file has the expected name."""
+    if pdk_name == "asap7":
+        adk_path = "./mflowgen/adks/asap7/view-standard/"
+        source_file = adk_path + "rtk-stream-out-130.map"
+        target_file = adk_path + "rtk-stream-out.map"
+        
+        if os.path.exists(source_file) and not os.path.exists(target_file):
+            import shutil
+            shutil.copy(source_file, target_file)
+            print(f"Copied {source_file} to {target_file}")
+        elif os.path.exists(target_file):
+            print("GDS layer map file already exists")
+        else:
+            print(f"Warning: Could not find {source_file}")
 
 def run_flow(input_file_folder, project_name, pdk_name):
     ## copy the verilog files into the project
@@ -110,7 +152,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("sed -i 's/PARAM_DESIGN_NAME_2/" + remove_extension(list_of_proj_files[-1]) + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
 
     ## update the PDK_NAME in the construct-commercial-full.py with the pdk_name param
-    execute_command("sed -i 's/PARAM_PDK_NAME/" + pdk_name + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
+    execute_command("sed -i \"s/adk_name = 'freepdk-45nm'/adk_name = '" + pdk_name + "'/g\" ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
 
     ## update the clock period in the construct-commercial-full.py
     clock_period = "2000.0" # this is in ps
@@ -120,6 +162,11 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     execute_command("sed -i 's/PARAM_CLOCK_PERIOD/" + clock_period + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
 
+    ## Fix antenna cell issue for PDKs that don't define it (e.g., ASAP7)
+    fix_antenna_cell_issue()
+    
+    ## Fix GDS layer map naming issue for ASAP7
+    fix_gds_layer_map(pdk_name)
 
     ## update steps/cadence-genus-synthesis/configure.yml
     cadence_genus_input_files = list_of_proj_files.copy()
@@ -130,7 +177,6 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     if not os.path.exists("./mflowgen/steps/cadence-genus-synthesis/backup-copy-configure.yml"):
         execute_command("cp ./mflowgen/steps/cadence-genus-synthesis/configure.yml ./mflowgen/steps/cadence-genus-synthesis/backup-copy-configure.yml")
-
 
     edit_yaml_inputs("./mflowgen/steps/cadence-genus-synthesis/configure.yml", cadence_genus_input_files)
 
@@ -144,8 +190,20 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("make 13 | tee debug.out")
 
     if not os.path.exists("./13-cadence-innovus-route/"):
-        print("Error, flow incomplete. Exiting...")
+        print("Error, flow incomplete at step 13. Exiting...")
         exit(1)
+
+    print("Step 13 (route) completed successfully!")
+    
+    # Run step 16 for signoff
+    print("Running step 16 (signoff)...")
+    execute_command("make 16 | tee -a debug.out")
+    
+    if not os.path.exists("./16-cadence-innovus-signoff/"):
+        print("Error, flow incomplete at step 16 (signoff). Exiting...")
+        exit(1)
+    
+    print("Step 16 (signoff) completed successfully!")
 
     ## copy the area & timing results to the results directory
     results_folder_name = "flow_results/" + project_name + "-" + generate_timestamp_folder_name()
@@ -157,7 +215,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
         execute_command("mkdir flow_results")
 
 
-    execute_command("mkdir" + results_folder_name)
+    execute_command("mkdir " + results_folder_name)
     execute_command("cp -r ./mflowgen/build/5-cadence-genus-synthesis/results_syn ./" + results_folder_name)
 
     change_directory("./mflowgen/build/13-cadence-innovus-route/")
