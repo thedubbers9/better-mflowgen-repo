@@ -14,6 +14,7 @@ import os
 
 from datetime import datetime
 import argparse
+import time
 
 USR_HOME_DIR = '~'
 
@@ -72,7 +73,7 @@ def execute_command(command):
     """Executes an arbitrary Linux command."""
     try:
         # Execute the command and capture the output
-        result = subprocess.run(command, shell=True, check=True, text=True)
+        result = subprocess.run(command, shell=True, check=True, universal_newlines=True)
 
     except subprocess.CalledProcessError as e:
         # Print or handle the error if the command fails
@@ -126,6 +127,53 @@ def fix_gds_layer_map(pdk_name):
         else:
             print(f"Warning: Could not find {source_file}")
 
+def fix_checkpoint_race_condition():
+    """Fixes checkpoint file timestamp race condition by disabling file modification check."""
+    # Find all restore-design.tcl files that might be used
+    restore_files = [
+        "./mflowgen/steps/cadence-innovus-power/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-place/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-cts/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-postcts_hold/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-route/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-postroute/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-postroute_hold/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+        "./mflowgen/steps/cadence-innovus-signoff/innovus-foundation-flow/custom-scripts/restore-design.tcl",
+    ]
+    
+    for restore_file in restore_files:
+        if not os.path.exists(restore_file):
+            continue
+            
+        with open(restore_file, 'r') as f:
+            content = f.read()
+        
+        # Check if already fixed
+        if 'set restore_db_file_check 0' in content:
+            continue
+        
+        # Add the fix at the beginning of the file (after any shebang/header comments)
+        lines = content.split('\n')
+        insert_pos = 0
+        
+        # Skip initial comments
+        for i, line in enumerate(lines):
+            if line.strip() and not line.strip().startswith('#'):
+                insert_pos = i
+                break
+        
+        # Insert the fix
+        lines.insert(insert_pos, '# Disable checkpoint file modification check to avoid NFS race conditions')
+        lines.insert(insert_pos + 1, 'set restore_db_file_check 0')
+        lines.insert(insert_pos + 2, '')
+        
+        with open(restore_file, 'w') as f:
+            f.write('\n'.join(lines))
+        
+        print(f"Fixed checkpoint race condition in {restore_file}")
+    
+    print("Checkpoint race condition fix applied")
+
 def run_flow(input_file_folder, project_name, pdk_name):
     ## copy the verilog files into the project
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
@@ -167,6 +215,9 @@ def run_flow(input_file_folder, project_name, pdk_name):
     
     ## Fix GDS layer map naming issue for ASAP7
     fix_gds_layer_map(pdk_name)
+    
+    ## Fix checkpoint file race condition for NFS filesystems
+    fix_checkpoint_race_condition()
 
     ## update steps/cadence-genus-synthesis/configure.yml
     cadence_genus_input_files = list_of_proj_files.copy()

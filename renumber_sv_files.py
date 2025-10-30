@@ -32,7 +32,6 @@ def find_module_dependencies(filepath):
     
     # Match: <module_name> <instance_name> (
     # Also match: <module_name> #(...) <instance_name> (
-    dependencies = set()
     patterns = [
         r'^\s*(\w+)\s+(?:#\s*\([^)]*\)\s+)?(\w+)\s*\(',  # Standard instantiation
         r'^\s*(\w+)\s+(\w+)\s*\[',  # Array instantiation
@@ -93,6 +92,7 @@ def topological_sort(modules_dict):
 def renumber_files(directory, dry_run=False):
     """
     Renumbers all .sv files in directory according to dependency order.
+    Packages are numbered first, then modules.
     """
     dir_path = Path(directory)
     
@@ -135,12 +135,16 @@ def renumber_files(directory, dry_run=False):
     # Rename files
     print(f"\n{'DRY RUN - ' if dry_run else ''}Renaming files:")
     
+    # Calculate number of digits needed (e.g., 122 files needs 3 digits: 001, 002, ..., 122)
+    num_digits = len(str(len(ordered_modules)))
+    
     # First pass: rename to temporary names to avoid conflicts
     temp_renames = []
     for i, module in enumerate(ordered_modules, 1):
         old_path = module_to_file[module]
-        new_name = f"{i}_{module}.sv"
-        temp_name = f"_temp_{i}_{module}.sv"
+        # Use zero-padded numbers for proper alphabetical sorting
+        new_name = f"{str(i).zfill(num_digits)}_{module}.sv"
+        temp_name = f"_temp_{str(i).zfill(num_digits)}_{module}.sv"
         temp_path = old_path.parent / temp_name
         new_path = old_path.parent / new_name
         
