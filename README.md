@@ -1,5 +1,5 @@
 # To set up the environment:
-source mflowgen_env_setup_script_<school>.sh
+source run_setup.sh
 
 # To run BETTER_mflowgen on a design:
 

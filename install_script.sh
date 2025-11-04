@@ -5,7 +5,7 @@ git submodule update --init --recursive
 
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh -b -p "$(pwd)/miniconda3"
-source mflowgen_env_setup_script_$1.sh
+source miniconda3/etc/profile.d/conda.sh
 conda create --name mflowgen_env python=3.8 ipython
 
 source "$(pwd)/miniconda3/bin/activate" mflowgen_env
