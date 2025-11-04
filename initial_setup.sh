@@ -43,5 +43,16 @@ sed -i "s/'clock_period'   : 2.0/'clock_period'   : PARAM_CLOCK_PERIOD/g" "$CONS
 ## replace  g.connect( rtl.o('design.v'), verif_post_synth.i('design.ref.v') ) with  g.connect( rtl.o('PARAM_DESIGN_NAME_2.sv'), verif_post_synth.i('design.ref.v') )
 sed -i "s/g.connect( rtl.o('design.v'), verif_post_synth.i('design.ref.v') )/g.connect( rtl.o('PARAM_DESIGN_NAME_2.sv'), verif_post_synth.i('design.ref.v') )/g" "$CONSTRUCT_COMMERCIAL_FILE"
 
+## disable integrity check for innovus power step
+INNOVUS_POWER_START_TCL="$TOP/mflowgen/steps/cadence-innovus-power/START.tcl"
+
+# insert "set restore_db_file_check 0" on the next line after the line: "# Restore from checkpoint and set up variables"
+sed -i "/# Restore from checkpoint and set up variables/a set restore_db_file_check 0" "$INNOVUS_POWER_START_TCL"
+
 cd ..
+
+## write a file .mflowgen_setup_done to indicate setup is done
+touch .mflowgen_setup_done
+
+conda deactivate
 

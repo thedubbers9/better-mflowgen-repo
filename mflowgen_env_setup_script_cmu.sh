@@ -1,3 +1,9 @@
+## see if .mflowgen_setup_done file exists
+if [ ! -f ".mflowgen_setup_done" ]; then
+    ## run the setup script
+    source initial_setup.sh cmu
+fi
+
 # Cadence Genus - synthesis
 export GENUS_DIR=/afs/ece.cmu.edu/support/cds/share/image/usr/cds/genus-18.14.000/tools.lnx86
 # Cadence Conformal - logic equivalence checker
