@@ -1,9 +1,4 @@
-## see if .mflowgen_setup_done file exists
-if [ ! -f ".mflowgen_setup_done" ]; then
-    ## run the setup script
-    source initial_setup.sh cmu
-fi
-
+#!/bin/bash
 # Cadence Genus - synthesis
 export GENUS_DIR=/afs/ece.cmu.edu/support/cds/share/image/usr/cds/genus-18.14.000/tools.lnx86
 # Cadence Conformal - logic equivalence checker
@@ -54,9 +49,3 @@ export CDS_LIC_FILE=5280@cadence-lic.ece.cmu.edu
 export CDS_AUTO_64BIT=ALL
 export CDS_Netlisting_Mode=Analog
 export ECE725_CLASS=/afs/ece/class/ece725
-
-##### miniconda setup #####
-export PATH="$(pwd)/miniconda3/bin:$PATH"
-
-source miniconda3/etc/profile.d/conda.sh
-conda activate mflowgen_env
