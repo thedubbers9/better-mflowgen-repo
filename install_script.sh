@@ -47,6 +47,13 @@ sed -i "s/g.connect( rtl.o('design.v'), verif_post_synth.i('design.ref.v') )/g.c
 
 cd ..
 
+## Fixes to steps that are required for all designs:
+# disable integrity check for innovus power step
+INNOVUS_POWER_START_TCL="$TOP/steps/cadence-innovus-power/START.tcl"
+
+# insert "set restore_db_file_check 0" on the next line after the line: "# Restore from checkpoint and set up variables"
+sed -i "/# Restore from checkpoint and set up variables/a set restore_db_file_check 0" "$INNOVUS_POWER_START_TCL"
+
 ## write a file .mflowgen_setup_done to indicate setup is done
 touch .mflowgen_setup_done
 
