@@ -1,3 +1,4 @@
 miniconda3/
 Miniconda3-latest-Linux-x86_64.sh
 flow_results/
+.mflowgen_setup_done
