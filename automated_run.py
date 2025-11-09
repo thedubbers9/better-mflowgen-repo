@@ -175,6 +175,7 @@ def fix_checkpoint_race_condition():
     print("Checkpoint race condition fix applied")
 
 def run_flow(input_file_folder, project_name, pdk_name):
+    
     ## copy the verilog files into the project
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
         execute_command("rm -rf ./mflowgen/designs/" + project_name + "/")
@@ -279,27 +280,46 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
 
+def run_flow_from_containing_directory(source_directory, pdk_name):
+    ## save the relevant directory paths
+    run_directory = os.getcwd()
+    better_mflowgen_root = os.path.dirname(os.path.abspath(__file__))
+
+    ## copy the design into the better-mflowgen input_designs directory
+    copy_source_directory = os.path.join(run_directory, source_directory)
+
+    # get only the last part of the source directory to use as project name
+    project_name = os.path.basename(os.path.normpath(source_directory))
+
+    destination_directory = os.path.join(better_mflowgen_root, "input_designs", project_name)
+
+    if os.path.exists(destination_directory):
+        execute_command(f"rm -rf {destination_directory}")
+    execute_command(f"cp -r {copy_source_directory} {destination_directory}")
+
+    ## change directory to better-mflowgen root
+    change_directory(better_mflowgen_root)
+
+    ## run the flow
+    run_flow(os.path.join("input_designs", project_name), project_name, pdk_name)
+
 
 def main(argv=None):
-        """Parse command line arguments and invoke run_flow.
+        """
 
         Options:
-            --input-folder / -i : path to folder containing input RTL files
-            --project-name / -p : name of the project to create under mflowgen/designs
-            --pdk / -d : pdk name to use (e.g. asap7, skywater-130nm, freepdk-45nm)
+            
         """
         parser = argparse.ArgumentParser(description="Run mflowgen flow for a given input folder and PDK")
-        parser.add_argument('-i', '--input-folder', required=True,
-                                                help='Folder containing input RTL/files (relative to repo root)')
-        parser.add_argument('-p', '--project-name', required=True,
-                                                help='Project name to create under mflowgen/designs')
+        parser.add_argument('-s', '--source_directory', dest='source_directory', required=True,
+                                                help='Folder containing input RTL/files (relative to directory where script is run)')
         parser.add_argument('-d', '--pdk', dest='pdk_name', required=True,
                                                 help='PDK name to use (e.g. asap7, skywater-130nm, freepdk-45nm)')
 
         args = parser.parse_args(argv)
 
         # Call the flow with the provided arguments
-        run_flow(args.input_folder, args.project_name, args.pdk_name)
+        run_flow_from_containing_directory(args.source_directory, args.pdk_name)
 
 
 if __name__ == '__main__':
