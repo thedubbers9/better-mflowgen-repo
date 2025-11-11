@@ -68,6 +68,10 @@ def list_files_in_directory(directory):
     """Reads all file names from the specified directory and returns them in an array."""
     return [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
 
+def list_directories_in_directory(directory):
+    """Reads all directory names from the specified directory and returns them in an array."""
+    return [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+
 
 def execute_command(command):
     """Executes an arbitrary Linux command."""
@@ -174,7 +178,7 @@ def fix_checkpoint_race_condition():
     
     print("Checkpoint race condition fix applied")
 
-def run_flow(input_file_folder, project_name, pdk_name):
+def run_flow(input_file_folder, project_name, pdk_name, custom_flow_directory, clean):
     
     ## copy the verilog files into the project
     if os.path.exists("./mflowgen/designs/" + project_name +"/"):
@@ -199,6 +203,20 @@ def run_flow(input_file_folder, project_name, pdk_name):
     execute_command("sed -i 's/PARAM_DESIGN_NAME_1/" + remove_extension_and_prefix(list_of_proj_files[-1]) + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
 
     execute_command("sed -i 's/PARAM_DESIGN_NAME_2/" + remove_extension(list_of_proj_files[-1]) + "/g' ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
+
+
+    ## update construct commercial full with custom flow steps
+    if custom_flow_directory is not None:
+        custom_flow_steps = list_directories_in_directory(custom_flow_directory)
+
+        for step_name in custom_flow_steps:
+
+            # edit the construct commercial full to use the custom step. To do this, find the line cts            = Step( 'cadence-innovus-cts',            default=True ) where the 
+            # text inside the Step() matches the text in '', and replace it with the custom step path. Also remove the default=True argument.
+            step_line_pattern = r"(\s*)(\w+)\s*=\s*Step\(\s*'{}'\s*,\s*default=True\s*\)".format(step_name)
+            replacement_line = r"\1\2 = Step( '" + os.path.abspath(os.path.join(custom_flow_directory, step_name)) + "' )"
+            execute_command("sed -i -E \"s#{}#{}#\" ./mflowgen/designs/{}/construct-commercial-full.py".format(step_line_pattern, replacement_line, project_name))
+
 
     ## update the PDK_NAME in the construct-commercial-full.py with the pdk_name param
     execute_command("sed -i \"s/adk_name = 'freepdk-45nm'/adk_name = '" + pdk_name + "'/g\" ./mflowgen/designs/" + project_name + "/construct-commercial-full.py")
@@ -233,7 +251,8 @@ def run_flow(input_file_folder, project_name, pdk_name):
     edit_yaml_inputs("./mflowgen/steps/cadence-genus-synthesis/configure.yml", cadence_genus_input_files)
 
     ## make the project through stage 13
-    execute_command("rm -rf ./mflowgen/build/*")
+    if clean:
+        execute_command("rm -rf ./mflowgen/build/*")
 
     change_directory("./mflowgen/build/")
 
@@ -280,7 +299,7 @@ def run_flow(input_file_folder, project_name, pdk_name):
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
 
-def run_flow_from_containing_directory(source_directory, pdk_name):
+def run_flow_from_containing_directory(source_directory, pdk_name, custom_flow_directory, clean):
     ## save the relevant directory paths
     run_directory = os.getcwd()
     better_mflowgen_root = os.path.dirname(os.path.abspath(__file__))
@@ -297,12 +316,15 @@ def run_flow_from_containing_directory(source_directory, pdk_name):
         execute_command(f"rm -rf {destination_directory}")
     execute_command(f"cp -r {copy_source_directory} {destination_directory}")
 
+    # append the run_directory to the custom flow directory if it is not None
+    if custom_flow_directory is not None:
+        custom_flow_directory = os.path.join(run_directory, custom_flow_directory)
+
     ## change directory to better-mflowgen root
     change_directory(better_mflowgen_root)
 
     ## run the flow
-    run_flow(os.path.join("input_designs", project_name), project_name, pdk_name)
-
+    run_flow(os.path.join("input_designs", project_name), project_name, pdk_name, custom_flow_directory, clean)
 
 def main(argv=None):
         """
@@ -313,13 +335,18 @@ def main(argv=None):
         parser = argparse.ArgumentParser(description="Run mflowgen flow for a given input folder and PDK")
         parser.add_argument('-s', '--source_directory', dest='source_directory', required=True,
                                                 help='Folder containing input RTL/files (relative to directory where script is run)')
+        
+        parser.add_argument('-f', '--custom_flow', dest='custom_flow', required=False,
+                                                help='Folder containing modified copies of steps. These steps will be used instead of the default ones in better-mflowgen/mflowgen/steps/')
         parser.add_argument('-d', '--pdk', dest='pdk_name', required=True,
                                                 help='PDK name to use (e.g. asap7, skywater-130nm, freepdk-45nm)')
+        parser.add_argument('-c', '--clean', action='store_true', dest='clean',
+                                                help='If set, removes the existing build directory before running the flow.')
 
         args = parser.parse_args(argv)
 
         # Call the flow with the provided arguments
-        run_flow_from_containing_directory(args.source_directory, args.pdk_name)
+        run_flow_from_containing_directory(args.source_directory, args.pdk_name, args.custom_flow, args.clean)
 
 
 if __name__ == '__main__':
