@@ -18,6 +18,9 @@ import time
 
 USR_HOME_DIR = '~'
 
+CMU_SUPPORTED_MACHINES = "bluey"
+STANFORD_SUPPORTED_MACHINES = "NONE (RSGVM19 currently under development)"
+
 def generate_timestamp_folder_name():
     # Get the current date and time, then format it
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -248,7 +251,11 @@ def run_flow(input_file_folder, project_name, pdk_name, custom_flow_directory, c
     if not os.path.exists("./mflowgen/steps/cadence-genus-synthesis/backup-copy-configure.yml"):
         execute_command("cp ./mflowgen/steps/cadence-genus-synthesis/configure.yml ./mflowgen/steps/cadence-genus-synthesis/backup-copy-configure.yml")
 
-    edit_yaml_inputs("./mflowgen/steps/cadence-genus-synthesis/configure.yml", cadence_genus_input_files)
+    if custom_flow_directory is not None and "cadence-genus-synthesis" in custom_flow_steps:
+        ## edit the custom step configure.yml
+        edit_yaml_inputs(os.path.join(custom_flow_directory, "cadence-genus-synthesis", "configure.yml"), cadence_genus_input_files)
+    else:
+        edit_yaml_inputs("./mflowgen/steps/cadence-genus-synthesis/configure.yml", cadence_genus_input_files)
 
     ## make the project through stage 13
     if clean:
@@ -332,12 +339,12 @@ def main(argv=None):
         Options:
             
         """
-        parser = argparse.ArgumentParser(description="Run mflowgen flow for a given input folder and PDK")
+        parser = argparse.ArgumentParser(description=f"Run mflowgen flow for a given input folder and PDK. Currently supported and tested on CMU Machines {CMU_SUPPORTED_MACHINES} and Stanford Machines {STANFORD_SUPPORTED_MACHINES} only.")
         parser.add_argument('-s', '--source_directory', dest='source_directory', required=True,
                                                 help='Folder containing input RTL/files (relative to directory where script is run)')
         
         parser.add_argument('-f', '--custom_flow', dest='custom_flow', required=False,
-                                                help='Folder containing modified copies of steps. These steps will be used instead of the default ones in better-mflowgen/mflowgen/steps/')
+                                                help='Folder containing modified copies of steps. These steps will be used instead of the default ones in better-mflowgen/mflowgen/steps/. Note that these steps configure.yml files will also be modified to include the input files from the source_directory.')
         parser.add_argument('-d', '--pdk', dest='pdk_name', required=True,
                                                 help='PDK name to use (e.g. asap7, skywater-130nm, freepdk-45nm)')
         parser.add_argument('-c', '--clean', action='store_true', dest='clean',
