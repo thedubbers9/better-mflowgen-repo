@@ -23,6 +23,8 @@ def extract_module_name(filepath):
 
 def find_module_dependencies(filepath):
     """Finds all module instantiations in a SystemVerilog file."""
+    dependencies = set()
+    
     with open(filepath, 'r') as f:
         content = f.read()
     
@@ -56,16 +58,18 @@ def topological_sort(modules_dict):
     Returns ordered list of module names (dependency order).
     """
     # Build dependency graph
+    # If module A depends on module B, we want B before A in compilation order
+    # So we create edge from A to B, and count out-degree (dependencies)
     in_degree = {mod: 0 for mod in modules_dict.keys()}
     adj_list = {mod: [] for mod in modules_dict.keys()}
     
     for module, deps in modules_dict.items():
         for dep in deps:
             if dep in modules_dict:  # Only count dependencies that are in our design
-                adj_list[dep].append(module)
-                in_degree[module] += 1
+                adj_list[module].append(dep)  # Reversed: module points to its dependency
+                in_degree[dep] += 1           # Reversed: dependency has incoming edge
     
-    # Find all nodes with no incoming edges (leaf modules)
+    # Find all nodes with no incoming edges (modules that nobody depends on - top level)
     queue = [mod for mod in modules_dict.keys() if in_degree[mod] == 0]
     result = []
     
@@ -87,7 +91,9 @@ def topological_sort(modules_dict):
             if mod not in result:
                 result.append(mod)
     
-    return result
+    # Reverse the result so leaf modules (with no dependencies) come first
+    # and top-level modules (that depend on others) come last
+    return list(reversed(result))
 
 def renumber_files(directory, dry_run=False):
     """
