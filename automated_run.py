@@ -306,6 +306,24 @@ def run_flow(input_file_folder, project_name, pdk_name, custom_flow_directory, c
 
     execute_command("echo 'report_timing -through [get_cells iDUT] -max_paths 10 > DUT_timing.rpt' >> get_stats.tcl")
 
+    execute_command("innovus -stylus -batch -file get_stats.tcl")
+    change_directory("../../..")
+
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/power.rpt ./" + results_folder_name + "/")
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/area.rpt ./" + results_folder_name + "/")
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/timing.rpt ./" + results_folder_name + "/")
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/post_route_netlist.sv ./" + results_folder_name + "/")
+    execute_command("cp ./mflowgen/build/13-cadence-innovus-route/DUT_timing.rpt ./" + results_folder_name + "/")
+
+
+    ## copy the input files to the result directory
+    execute_command("cp -r ./" + input_file_folder + " ./" + results_folder_name + "/input-files/")
+
+    ## copy the entire build directory to the results directory [NOT RECOMMENDED, uses too much space]
+    #execute_command("cp -r ./mflowgen/build/ ./" + results_folder_name + "/full-build/")
+
+    print("FLOW COMPLETE! See results folder created (" + results_folder_name + ") !")
+
 def run_flow_from_containing_directory(source_directory, pdk_name, custom_flow_directory, clean):
     ## save the relevant directory paths
     run_directory = os.getcwd()
